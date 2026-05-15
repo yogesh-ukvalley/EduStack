@@ -34,6 +34,13 @@ const protect = async (req, res, next) => {
       });
     }
 
+    if (!admin.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account has been disabled. Contact your administrator.'
+      });
+    }
+
     // Attach admin to request object
     req.admin = admin;
     next();
@@ -46,6 +53,25 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  protect
+// Authorize roles - restrict access based on user role
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!req.admin) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized to access this route'
+      });
+    }
+
+    if (!roles.includes(req.admin.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to perform this action'
+      });
+    }
+
+    next();
+  };
 };
+
+module.exports = { protect, authorize };

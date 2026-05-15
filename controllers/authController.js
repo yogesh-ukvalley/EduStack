@@ -1,6 +1,5 @@
 const Admin = require('../models/Admin');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 
 // Generate JWT Token
 const generateToken = (adminId) => {
@@ -16,12 +15,8 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Debug: Log incoming request (remove in production later)
-    console.log('Login attempt:', { email: email?.toLowerCase() });
-
     // Validate required fields
     if (!email || !password) {
-      console.log('Login failed: Missing email or password');
       return res.status(400).json({
         success: false,
         message: 'Email and password are required'
@@ -31,25 +26,25 @@ const login = async (req, res) => {
     // Find admin by email
     const admin = await Admin.findOne({ email: email.toLowerCase() });
 
-    // Debug: Check if admin was found
-    console.log('Admin found:', !!admin);
-
     if (!admin) {
-      console.log('Login failed: Admin not found for email:', email.toLowerCase());
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
+    // Check if account is active
+    if (!admin.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: 'Your account has been disabled. Contact your administrator.'
+      });
+    }
+
     // Compare password
     const isMatch = await admin.comparePassword(password);
 
-    // Debug: Check password match
-    console.log('Password match:', isMatch);
-
     if (!isMatch) {
-      console.log('Login failed: Password mismatch for email:', email.toLowerCase());
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -59,8 +54,6 @@ const login = async (req, res) => {
     // Generate token
     const token = generateToken(admin._id);
 
-    console.log('Login successful for:', email.toLowerCase());
-
     res.status(200).json({
       success: true,
       message: 'Login successful',
@@ -69,12 +62,13 @@ const login = async (req, res) => {
         admin: {
           id: admin._id,
           email: admin.email,
-          name: admin.name
+          name: admin.name,
+          role: admin.role,
+          isActive: admin.isActive
         }
       }
     });
   } catch (error) {
-    console.error('Login error:', error.message);
     res.status(500).json({
       success: false,
       message: 'Server error',
@@ -83,7 +77,7 @@ const login = async (req, res) => {
   }
 };
 
-// POST /api/admin/register - Create initial admin (for setup only)
+// POST /api/admin/register - Create initial admin (super-admin only, via staff management)
 const register = async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -102,11 +96,11 @@ const register = async (req, res) => {
     if (existingAdmin) {
       return res.status(400).json({
         success: false,
-        message: 'Admin with this email already exists'
+        message: 'A user with this email already exists'
       });
     }
 
-    // Create new admin
+    // Create new admin (role defaults to 'staff')
     const admin = new Admin({
       email: email.toLowerCase(),
       password,
@@ -126,7 +120,9 @@ const register = async (req, res) => {
         admin: {
           id: admin._id,
           email: admin.email,
-          name: admin.name
+          name: admin.name,
+          role: admin.role,
+          isActive: admin.isActive
         }
       }
     });

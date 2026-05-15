@@ -17,6 +17,7 @@
 //   console.log(`Server running on port ${PORT}`);
 // });
 
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
@@ -28,9 +29,11 @@ connectDB();
 
 // Enable CORS
 const allowedOrigins = [
+  "http://localhost:8080",
   "http://localhost:8081",
   "http://localhost:5173",
   "http://localhost:3000",
+  "http://127.0.0.1:8080",
   "http://127.0.0.1:8081",
   "http://127.0.0.1:5173",
   "http://127.0.0.1:3000",
@@ -54,7 +57,7 @@ app.use(
         callback(null, true); // Allow all for now, can restrict later
       }
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
   })
@@ -66,7 +69,7 @@ app.use(express.json());
 // Routes
 app.use('/api', require('./routes/contactRoute'));
 app.use('/api', require('./routes/authRoute'));
-app.use('/api', require('./routes/adminRoute'));
+app.use('/api', require('./routes/staffRoute'));
 
 const PORT = process.env.PORT || 4000;
 

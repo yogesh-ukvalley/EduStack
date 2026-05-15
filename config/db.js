@@ -2,24 +2,27 @@ const mongoose = require('mongoose');
 const Admin = require('../models/Admin');
 const bcrypt = require('bcryptjs');
 
-// Seed default admin if none exists
+// Seed default super-admin if none exists
 const seedAdmin = async () => {
   try {
     const adminCount = await Admin.countDocuments();
 
     if (adminCount === 0) {
-      console.log('No admin found. Creating default admin...');
+      console.log('No admin found. Creating default super-admin...');
 
       const defaultAdmin = new Admin({
         email: 'admin@edustack.ca',
-        password: 'edustack123', // Will be hashed by pre-save hook
-        name: 'Admin'
+        password: 'edustack123',
+        name: 'Admin',
+        role: 'super-admin',
+        isActive: true
       });
 
       await defaultAdmin.save();
-      console.log('Default admin created successfully');
+      console.log('Default super-admin created successfully');
       console.log('Email: admin@edustack.ca');
       console.log('Password: edustack123');
+      console.log('Role: super-admin');
       console.log('IMPORTANT: Change these credentials in production!');
     } else {
       console.log(`Admin count: ${adminCount}`);

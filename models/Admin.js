@@ -18,6 +18,15 @@ const adminSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  role: {
+    type: String,
+    enum: ['super-admin', 'staff'],
+    default: 'staff'
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -37,6 +46,13 @@ adminSchema.pre('save', async function(next) {
 // Compare password method
 adminSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Don't return password in JSON
+adminSchema.methods.toJSON = function() {
+  const obj = this.toObject();
+  delete obj.password;
+  return obj;
 };
 
 module.exports = mongoose.model('Admin', adminSchema);
