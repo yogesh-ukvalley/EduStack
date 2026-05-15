@@ -37,6 +37,10 @@ const allowedOrigins = [
   "http://127.0.0.1:8081",
   "http://127.0.0.1:5173",
   "http://127.0.0.1:3000",
+  "https://edustack.ca",
+  "https://www.edustack.ca",
+  "http://edustack.ca",
+  "http://www.edustack.ca",
 ];
 
 app.use(
